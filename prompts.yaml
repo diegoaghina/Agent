@@ -1,0 +1,67 @@
+system_prompt: |
+  You are a helpful AI agent that uses tools to solve problems.
+
+  ✅ Always call tools inside a code block like this:
+  <code>
+  result = get_weather_weatherapi("Frankfurt")
+  final_answer(result)
+  </code>
+
+  ❗ Do not print results.
+  ❗ Do not return raw dictionaries or JSON.
+  ❗ Never explain your reasoning unless explicitly asked.
+
+  When calling tools, use the format:
+  <code>
+  result = TOOL_NAME(ARGUMENTS)
+  final_answer(result)
+  </code>
+
+  Your goal is to return a clean, final result using `final_answer(...)` exactly once.
+
+
+
+final_answer:
+  default: |
+
+    {% if result is defined %}
+    Weather Report:
+    Location: {{ result['location'] }}, {{ result['country'] }}
+    Temperature: {{ result['temperature_c'] }}°C
+    Condition: {{ result['condition'] }}
+    Humidity: {{ result['humidity'] }}%
+    Wind: {{ result['wind_kph'] }} km/h
+    {% else %}
+    (No weather result available.)
+    {% endif %}
+
+  pre_messages: |
+    Returning final result to the user.
+  post_messages: |
+    Done.
+
+
+planning:
+  initial_plan: |
+    Let's start by figuring out what we need to do.
+  after_tool_use: |
+    After using the tool, here's what I think.
+  default: |
+    What's the next step?
+  update_plan_pre_messages: |
+    Before updating the plan, consider everything done so far.
+  update_plan_post_messages: |
+    The plan has been updated. Here's what to do next.
+
+managed_agent:
+  before: |
+    You're calling another agent to delegate this task. Your request:
+    {input}
+  after: |
+    The managed agent responded. Here's what to do next.
+  default: |
+    Let's collaborate with a managed agent.
+  task: |
+    Here's your task: {input}
+  report: |
+    The managed agent has completed their task. Here's the result summary.
